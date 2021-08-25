@@ -5,13 +5,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models, transforms
 
-import os
 from sys import argv
 import shutil
 import requests
 
 from PIL import Image
-import matplotlib.pyplot as plt 
+
+import warnings
+warnings.filterwarnings("ignore")
 
 script, file_link = argv      
 
@@ -31,14 +32,13 @@ device = torch.device('cpu')
 model = models.resnet50(pretrained=False)
 num_ftrs = model.fc.in_features
 model.fc = nn.Linear(num_ftrs, 10)
-model.load_state_dict(torch.load('/Users/mordovets.i/imagewoof_ResNet50.pth', map_location=device))
+model.load_state_dict(torch.load('imagewoof_ResNet50.pth', map_location=device))
 model.eval()
 
 class_names = ['Shih-Tzu', 'Rhodesian ridgeback', 'Beagle', 'English foxhound', 
            'Border terrier', 'Australian terrier', 'Golden retriever', 
            'Old English sheepdog', 'Samoyed', 'Dingo']
 
-fig = plt.figure(figsize=(20,10))
 
 with torch.no_grad():
 
@@ -51,6 +51,4 @@ with torch.no_grad():
         prob = F.softmax(outputs, dim=1)
         top_p, top_class = prob.topk(1, dim = 1)
 
-        plt.title('Порода: {}\n Уверенность модели: {}%'.format(class_names[int(preds.cpu().numpy())], 100*round(top_p.detach().cpu().numpy().tolist()[0][0],2)))
-        plt.imshow(img)
-        plt.show()
+        print('Порода: {}\nУверенность модели: {}%'.format(class_names[int(preds.cpu().numpy())], 100*round(top_p.detach().cpu().numpy().tolist()[0][0],2)))
